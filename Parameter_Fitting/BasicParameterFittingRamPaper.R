@@ -11,12 +11,13 @@ source("grind.R")
 #' Question 2
 #' Before we start to fit, let us have a look at the data
 
-# The 3 experiments are indexed by their date:
+#' The 3 experiments are indexed by their date:
 exptA <- "2015-11-18"  #Experiment A
 exptB <- "2015-12-14"  #Experiment B
 exptC <- "2016-01-06"  #Experiment C
 
-#Let us read in data of Figure 3 for experiment A
+#' 2A
+#' Let us read in data of Figure 3 for experiment A
 fig3RA <- read.csv(paste("Fig3/",exptA,"_R.csv",sep="")) # Red strain
 fig3GA <- read.csv(paste("Fig3/",exptA,"_G.csv",sep="")) # Green strain
 plot(fig3RA$Time, fig3RA$OD, ylim=c(0,0.8),col="red",pch=".",xlab="Time (hr)",
@@ -35,6 +36,7 @@ plot(fig5G$time, fig5G$freq_mean, ylim=c(0,1), col="green",xlab="Time (hr)",
 points(fig5R$time, fig5R$freq_mean, col="red")
 
 
+#' 2B
 #' Now to fit we first need to define the model
 
 model <- function(t, state, parms) {
@@ -87,13 +89,14 @@ fit3RAlog  <- fit(data3RA, state = s, odes = model, parms = p,
 print(fit3RAlog$par)
 
 
+#' Q2C&D
 #' Now look at fitting statistics
-#Q2C&D
+summary(fit3RAlog)
 
 
-#Q2D 
-#here you can write code to do the same as above but now for the red strain in Fig 3B
-#make sure to look at both parameter values and fit statistics
+#' Q2E
+#' Here you can write code to do the same as above but now for the red strain in Fig 3B
+#' Make sure to look at both parameter values and fit statistics
 
 
 #' The below loads in all the data from Fig3 of the Ram paper
@@ -108,17 +111,17 @@ print(fit3RAlog$par)
 source("HelperFunctionsAnswerFile.R")
 dataAndFitsFigureThree = readInDataFigureThreeRamPaper()
 
-#you can access the data using either $ or [[]]:
+#' you can access the data using either $ or [[]]:
 head(dataAndFitsFigureThree$DataexptAFig3G)
 head(dataAndFitsFigureThree[["DataexptAFig3R"]])
 
 
-#Question 3
+#' Question 3
 
-#Q3A 
+#' Q3A 
 
 
-#Q3B
+#' Q3B
 #' To do this, we need to tell the fit function of
 #'  -What parameters to fit for all data together (free parameters)
 #'  -What parameters to fit separately per dataset (different parameters).
@@ -130,7 +133,8 @@ s <- c(N=0.124)
 p <- c(K=0.6,r=0.4,m=2,q0=0.005,v=2)
 #all parameters are fitted
 free <- c("N",names(p)) 
-#define the parameters for which different values should be obtained from different data sets, for all other parameters a single fit value is obtained from the combined data sets
+#define the parameters for which different values should be obtained from different data sets, 
+#for all other parameters a single fit value is obtained from the combined data sets
 differ <- c("q0", "m")
 #define the list of data sets to be fitted to
 l <- list(dataAndFitsFigureThree$DataexptAFig3G, dataAndFitsFigureThree$DataexptAFig3R)
@@ -145,20 +149,26 @@ l <- list(dataAndFitsFigureThree$DataexptAFig3G, dataAndFitsFigureThree$Dataexpt
 #for each data set) + all remaining parameters in free that should be fitted combined for the two datasets
 totfree <- c(free[!(free %in% differ)], differ, differ)
 npar <- length(totfree)
-cat("Number of free parameters",npar)
+cat("Number of free parameters:",npar)
 
-#Now set all instances of v in the total number of parameters to have a lower bound of1, and all the other lower bounds to 0
+#' Now set all instances of v in the total number of parameters to have a lower bound of 1, 
+#' and all the other lower bounds to 0
 lower <- rep(0,npar); lower[which(totfree == "v")] <- 1; lower  # set lower bounds
 
 #' Now do the combined fitting
 
-fitq0mdiffer <- fit(data=l, free=free, differ=differ, fun=log, odes = model, state = s, parms = p, lower=lower, pch=".",legend=FALSE, tstep=0.1,  main="Red from A and B, q0 andd m differing", add=TRUE, ymin = 0, ymax = 1)
+fitq0mdiffer <- fit(data=l, free=free, differ=differ, fun=log, odes = model, 
+                    state = s, parms = p, lower=lower, pch=".",legend=FALSE, tstep=0.1,  
+                    main="Red from A and B, q0 and m differing", add=TRUE, ymin = 0, ymax = 1)
 summary(fitq0mdiffer)
 fitq0mdiffer$ssr
 
-# Question 4
+#' Q3C
 
-#Q4A: define the 2D model here
+
+#' Question 4
+
+#' Q4A: define the 2D model here
 
 
 #' Now let us read in the parameters as Ram et al. fitted them 
@@ -172,15 +182,15 @@ pR        <- dataAndFitsFigureThree$FitexptAFig3R$par[2:length(dataAndFitsFigure
 names(pR) <- paste(names(pR),"1",sep="")
 pG        <- dataAndFitsFigureThree$FitexptAFig3G$par[2:length(dataAndFitsFigureThree$FitexptAFig3G$par)]
 names(pG) <- paste(names(pG),"2",sep="")
-#total parameter set to fit figure 4 is then pR+pG plus the competition parameters
+#' Total parameter set to fit figure 4 is then pR+pG plus the competition parameters
 p4        <- c(pR,pG,c1=1,c2=1)
 
 #' Next construct initial conditions for N1 and N2 from the optical density data 
 #' representing N1+N2
 
 
-# Determine the initial conditions from the data: optical density at start
-# Assyne initially strains have equal frequency assigning half of OD to each.
+#' Determine the initial conditions from the data: optical density at start
+#' Assume initially strains have equal frequency assigning half of OD to each.
 fig4Data  <- readr::read_csv("Fig4/2015-11-18_RG.csv")
 data4Fit  <- dplyr::bind_cols(fig4Data$Time, fig4Data$OD) %>% dplyr::rename(time = ...1, OD = ...2) %>% as.data.frame()
 initialOD <- data4Fit[1,2]
@@ -188,16 +198,16 @@ s4        <- c(N1=initialOD/2,N2=initialOD/2);s4
 
 
 
-# Q4B Define which parameters are free to be fitted to the data of Fig4
+#' Q4B: Define which parameters are free to be fitted to the data of Fig4
 
 
 
-#Q4C Write code to do the actual fitting
+#' Q4C: Write code to do the actual fitting
 
 
 
 
-#Q4D redo the fitting for a 2D model with a single c parameter
+#' Q4D: redo the fitting for a 2D model with a single c parameter
 
 
 
