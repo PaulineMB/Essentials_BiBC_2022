@@ -32,11 +32,3 @@ plot(x~time)
 curve(0.1 * exp(x)/(1+0.1*(exp(x)-1.)), add=T)
 #' Add a legend
 legend("topleft", c("approximation", "analytical"), pch=c(1,NA), lty=c(NA,1))
-
-
-#' Fancier ggplot plotting
-#' Again plotting both obtained x values and numerical solution 
-#' over time and add legends
-dataFramePlot <- data.frame(x_value = c(x, 0.1 * exp(time)/(1+0.1*(exp(time)-1.))), time = time, solution_method = c(rep("Approximation", length(x)), rep("Analytical", length(x))))
-
-ggplot2::ggplot(data = dataFramePlot, aes (x = time, y = x_value, colour = solution_method)) + geom_point(data = dataFramePlot %>% subset(solution_method == "Approximation"), size = 2) + geom_line(data = dataFramePlot %>% subset(solution_method != "Approximation"), size = 1.2) + theme_bw() + ggtitle(paste0("Approximate versus analytical solution of f(x) = x*(1-x) for time step of ", timestep, "")) + theme(plot.title = element_text(hjust = 0.5))
